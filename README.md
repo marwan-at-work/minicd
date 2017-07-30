@@ -50,3 +50,9 @@ func main() {
 }
 
 ```
+
+### Gotchas
+
+This doesn't work with a local Docker container because spinning a new process inside the container doesn't keep the container alive if the original process was killed. 
+
+As a to-do, this could work with a swarm cluster. 

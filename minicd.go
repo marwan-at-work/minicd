@@ -3,12 +3,12 @@ package minicd
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	"github.com/pkg/errors"
 
@@ -50,6 +50,7 @@ func Handler(c Config) http.HandlerFunc {
 			fmt.Fprintln(w, err)
 			return
 		}
+		defer os.RemoveAll(tempPath)
 
 		err = compilePkg(tempPath)
 		if err != nil {
@@ -104,15 +105,13 @@ func parseRequest(r *http.Request, secret string) (cloneURL, headCommit string, 
 }
 
 func cloneRepo(githubToken, cloneURL, headCommit string) (tempPath string, err error) {
-	tempPath, err = ioutil.TempDir("", "minicd")
-	if err != nil {
-		return "", errors.Wrap(err, "could not get tempdir")
-	}
-
 	gitURL, err := url.Parse(cloneURL)
 	if err != nil {
 		return "", errors.Wrap(err, "invalid clone url")
 	}
+
+	// the reason we clone into GOPATH/src instead of ioutil.Tempdir is so that the vendor package can be read.
+	tempPath = filepath.Join(getGopath(), "src", fmt.Sprintf("minicd-%v", headCommit))
 
 	gitURL.User = url.UserPassword(githubToken, "x-oauth-basic")
 	repo, err := git.PlainClone(tempPath, false, &git.CloneOptions{
@@ -192,4 +191,32 @@ func run(binPath string) error {
 
 func pushValid(pe *github.PushEvent) bool {
 	return !pe.GetDeleted() && pe.HeadCommit != nil // add the infinite loop check.
+}
+
+func getGopath() string {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		gopath = defaultGOPATH()
+	}
+
+	return gopath
+}
+
+func defaultGOPATH() string {
+	env := "HOME"
+	if runtime.GOOS == "windows" {
+		env = "USERPROFILE"
+	} else if runtime.GOOS == "plan9" {
+		env = "home"
+	}
+	if home := os.Getenv(env); home != "" {
+		def := filepath.Join(home, "go")
+		if filepath.Clean(def) == filepath.Clean(runtime.GOROOT()) {
+			// Don't set the default GOPATH to GOROOT,
+			// as that will trigger warnings from the go tool.
+			return ""
+		}
+		return def
+	}
+	return ""
 }
