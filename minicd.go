@@ -1,6 +1,7 @@
 package minicd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -24,7 +26,7 @@ var errNoPushevent = errors.New("not a push event")
 type Config struct {
 	WebhookSecret string
 	GithubToken   string
-	KillSig       chan struct{}
+	KillSig       chan context.Context
 }
 
 // Handler is a function that returns an net/http Handler. This is the Github WebHook Handler
@@ -68,7 +70,7 @@ func Handler(c Config) http.HandlerFunc {
 			return
 		}
 
-		c.KillSig <- struct{}{}
+		sendKill(context.Background(), c.KillSig)
 
 		err = run(filepath.Join(dstPath, "minicdbin"))
 		if err != nil {
@@ -79,6 +81,14 @@ func Handler(c Config) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func sendKill(ctx context.Context, ch chan context.Context) {
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, time.Second*3)
+	defer cancel()
+	ch <- ctx
+	<-ctx.Done()
 }
 
 func parseRequest(r *http.Request, secret string) (cloneURL, headCommit string, err error) {

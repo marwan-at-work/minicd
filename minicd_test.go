@@ -1,10 +1,12 @@
 package minicd
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestCloneRepo(t *testing.T) {
@@ -55,6 +57,21 @@ func TestCp(t *testing.T) {
 
 	if _, err = os.Stat(fullDstPath); os.IsNotExist(err) {
 		t.Fatal("expected sample-file.txt to be copied to folder b")
+	}
+}
+
+func TestSendKill(t *testing.T) {
+	t.Parallel()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+
+	ch := make(chan context.Context)
+	go sendKill(ctx, ch)
+
+	select {
+	case <-ch:
+	case <-time.After(time.Millisecond * 5):
+		t.Fatal("expected a send kill but timeout")
 	}
 }
 

@@ -37,11 +37,7 @@ func main() {
         }
     }()
 
-    <-killSig
-    ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-    defer cancel()
-
-    err := srv.Shutdown(ctx)
+    err := srv.Shutdown(<-killSig)
     if err != nil {
         log.Fatal(err)
     }
