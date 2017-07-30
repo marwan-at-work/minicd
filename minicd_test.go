@@ -1,6 +1,7 @@
 package minicd
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -35,9 +36,14 @@ func TestCp(t *testing.T) {
 
 	cwd := getWd(t)
 	src := filepath.Join(cwd, "test_data", "cp", "a", "sample-file.txt")
+	err := ioutil.WriteFile(src, []byte("test file"), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	dst := filepath.Join(cwd, "test_data", "cp", "b")
 	fullDstPath := filepath.Join(dst, "sample-file.txt")
-	err := os.RemoveAll(fullDstPath)
+	err = os.RemoveAll(fullDstPath)
 	if err != nil {
 		t.Fatal(err)
 	}
