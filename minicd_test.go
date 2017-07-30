@@ -8,7 +8,7 @@ import (
 
 func TestCloneRepo(t *testing.T) {
 	t.Parallel()
-	tempDir, err := cloneRepo("", "https://github.com/marwan-at-work/minicd.git", "2f5f45ed98574a9f610539676ec8b2b1c7a6a3c5")
+	tempDir, err := cloneRepo("", "https://github.com/marwan-at-work/minicd.git", "80f9eef19f0294447a144c0e7c5ab845d4b836c7")
 	if err != nil {
 		t.Fatal(err)
 	}

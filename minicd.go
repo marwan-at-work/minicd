@@ -161,7 +161,8 @@ func cp(path, dest string) error {
 
 	_, fileName := filepath.Split(path)
 
-	fdest, err := os.Create(filepath.Join(dest, fileName))
+	fullDstPath := filepath.Join(dest, fileName)
+	fdest, err := os.Create(fullDstPath)
 	if err != nil {
 		return errors.Wrap(err, "could not create destination binary")
 	}
@@ -170,6 +171,12 @@ func cp(path, dest string) error {
 	_, err = io.Copy(fdest, f)
 	if err != nil {
 		err = errors.Wrap(err, "could not copy binary to destination")
+	}
+	fdest.Close()
+
+	err = os.Chmod(fullDstPath, 0555)
+	if err != nil {
+		err = errors.Wrap(err, "could not make new binary executable")
 	}
 
 	return err
