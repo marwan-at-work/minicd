@@ -10,6 +10,7 @@ This is meant for small personal projects and I wouldn't recommend it for large 
 package main
 
 import (
+    "context"
     "fmt"
     "net/http"
 
@@ -17,7 +18,7 @@ import (
 )
 
 func main() {
-    killSig := make(chan struct{})
+    killSig := make(chan context.Context)
 
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintln(w, "hello world")
