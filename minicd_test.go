@@ -75,6 +75,15 @@ func TestSendKill(t *testing.T) {
 	}
 }
 
+func TestGetGOPATH(t *testing.T) {
+	t.Parallel()
+
+	p := getGOPATH()
+	if p == "" {
+		t.Fatal("expected gopath to not be an empty string")
+	}
+}
+
 func getWd(t *testing.T) string {
 	t.Helper()
 	cwd, err := os.Getwd()

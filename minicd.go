@@ -121,7 +121,7 @@ func cloneRepo(githubToken, cloneURL, headCommit string) (tempPath string, err e
 	}
 
 	// the reason we clone into GOPATH/src instead of ioutil.Tempdir is so that the vendor package can be read.
-	tempPath = filepath.Join(getGopath(), "src", fmt.Sprintf("minicd-%v", headCommit))
+	tempPath = filepath.Join(getGOPATH(), "src", fmt.Sprintf("minicd-%v", headCommit))
 
 	gitURL.User = url.UserPassword(githubToken, "x-oauth-basic")
 	repo, err := git.PlainClone(tempPath, false, &git.CloneOptions{
@@ -203,7 +203,7 @@ func pushValid(pe *github.PushEvent) bool {
 	return !pe.GetDeleted() && pe.HeadCommit != nil // add the infinite loop check.
 }
 
-func getGopath() string {
+func getGOPATH() string {
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		gopath = defaultGOPATH()
